@@ -2,141 +2,117 @@
 
 <!-- mcp-name: io.github.AhmedLaminou/google-docs-mcp-server -->
 
-Google Docs MCP Server is a Python Model Context Protocol server exposing **50 tools** for Google Docs and Google Drive.
+An open-source, stdio-first MCP server exposing **50 Google Docs and Drive tools**.
 
-It supports two transports:
+## User experience
 
-- **stdio** for local MCP clients, `uvx`, and the VS Code extension.
-- **SSE over FastAPI** for hosted or remote deployments.
+End users do not need their own Google Cloud project. The published package uses this project's public Desktop OAuth client identity. Each user signs into their own Google account and stores a separate token only on their own machine.
 
-## Capabilities
-
-- Create, copy, search, organize, share, unshare, trash, and export documents.
-- Read full documents, ranges, headings, footnotes, links, tables, and explicit page-break sections.
-- Insert text, lists, images, page breaks, footnotes, tables, and table-cell content.
-- Apply text and paragraph formatting.
-- Find and replace text, batch operations, clear ranges, rows, or documents.
-- Create, reply to, list, and resolve Drive comments.
-
-See [docs/TOOLS_REFERENCE.md](docs/TOOLS_REFERENCE.md) for all tools and signatures.
-
-## Requirements
-
-- Python 3.10+
-- Google Docs API and Google Drive API enabled
-- Google OAuth 2.0 Web Application credentials
-- [`uv`](https://docs.astral.sh/uv/) when using the VS Code extension or `uvx`
-
-## Python Package
-
-Install in editable mode:
-
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -e .
+```text
+User prompt → AI client → local stdio MCP server
+            → user's local OAuth token → user's Google Docs
 ```
 
-This installs:
+The publisher does not receive user tokens or document content in local stdio mode.
 
-- `google-docs-mcp-server` — stdio MCP server
-- `google-docs-mcp-web` — OAuth and hosted SSE server
+## Install and authenticate
 
-## OAuth Setup
-
-1. Save your Google OAuth web-client JSON as `credentials.json`.
-2. Start the web server:
+After publication:
 
 ```powershell
-google-docs-mcp-web
+uvx --from google-docs-mcp-server google-docs-mcp-auth login
 ```
 
-3. Open `http://localhost:8000/login`.
-4. Complete consent. The server creates `token.json`.
+The browser consent flow stores the token in:
 
-Both secret files are ignored by Git.
+- Windows: `%APPDATA%\GoogleDocsMCP\token.json`
+- macOS: `~/Library/Application Support/GoogleDocsMCP/token.json`
+- Linux: `~/.config/google-docs-mcp/token.json`
 
-## MCP Client Configuration
+Useful commands:
 
-After the package is published to PyPI:
+```powershell
+google-docs-mcp-auth status
+google-docs-mcp-auth logout
+```
+
+## MCP client
 
 ```json
 {
   "mcpServers": {
     "google-docs": {
       "command": "uvx",
-      "args": ["google-docs-mcp-server"],
-      "env": {
-        "GOOGLE_TOKEN_FILE": "C:\\secure\\google-docs-mcp\\token.json"
-      }
+      "args": ["google-docs-mcp-server"]
     }
   }
 }
 ```
 
-For a local editable installation:
+The VS Code extension registers this stdio server automatically.
 
-```json
-{
-  "mcpServers": {
-    "google-docs": {
-      "command": "C:\\path\\to\\GoogleDocsMCPServer\\venv\\Scripts\\google-docs-mcp-server.exe",
-      "args": [],
-      "env": {
-        "GOOGLE_TOKEN_FILE": "C:\\path\\to\\GoogleDocsMCPServer\\token.json"
-      }
-    }
-  }
-}
+## Permission profiles
+
+The public/default profile requests:
+
+- `documents` — read and edit Google Docs.
+- `drive.file` — Drive operations for files created by or explicitly opened with the app.
+
+This avoids the restricted full-Drive scope. Broad Drive listing/search and permission operations therefore only see files available to `drive.file`.
+
+Self-hosters can intentionally opt into restricted full-Drive access:
+
+```powershell
+$env:GOOGLE_DOCS_MCP_SCOPE_PROFILE = "full"
+google-docs-mcp-auth login --full-drive
 ```
 
-## Hosted SSE Server
+## Developer setup
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -e .
+google-docs-mcp-auth login
+google-docs-mcp-server
+```
+
+Before a public release, the maintainer must create a Google OAuth client of type **Desktop app** and save its downloaded JSON as:
+
+```text
+google_docs_mcp_server/oauth_client.json
+```
+
+Desktop OAuth clients are public clients: their client identifier and nominal client secret cannot be kept confidential in a distributed/open-source desktop application. User refresh tokens remain private on each user's machine.
+
+Self-hosters can instead put their own OAuth JSON at `%APPDATA%\GoogleDocsMCP\oauth_client.json` or set `GOOGLE_CREDENTIALS_FILE`.
+
+## Optional hosted mode
+
+FastAPI/SSE remains available:
 
 ```powershell
 google-docs-mcp-web
 ```
 
-Endpoints:
+It is not the default public architecture because true multi-user hosting requires per-user sessions and secure server-side token storage.
 
-- `GET /health`
-- `GET /login`
-- `GET /oauth2callback`
-- `GET /sse`
-- `POST /messages/`
+## Capabilities
 
-For production, configure `PUBLIC_BASE_URL`, `MCP_API_KEY`, `MCP_SESSION_SECRET`, `ALLOWED_HOSTS`, `COOKIE_SECURE=true`, and persistent token storage.
+- Document creation, copying, deletion, metadata, organization, sharing, and PDF export.
+- Reading text, ranges, headings, footnotes, links, and tables.
+- Text, list, image, footnote, table, and table-cell insertion.
+- Formatting, comments, replies, named ranges, and batch updates.
 
-## VS Code Extension
+See [docs/TOOLS_REFERENCE.md](docs/TOOLS_REFERENCE.md).
 
-The `vscode-extension/` folder follows the same wrapper pattern as WindowsMCPServer and registers the PyPI package through `uvx`.
-
-```powershell
-cd vscode-extension
-npm install
-npm run compile
-```
-
-Open that folder in VS Code and press `F5` to launch an Extension Development Host.
-
-## Development
+## Verification
 
 ```powershell
-.\venv\Scripts\python.exe -m unittest discover -s tests -v
-.\venv\Scripts\python.exe -m compileall google_docs_mcp_server
-.\venv\Scripts\python.exe -c "import asyncio; from google_docs_mcp_server.server import mcp; print(len(asyncio.run(mcp.list_tools())))"
+python -m unittest discover -s tests -v
+python -m compileall google_docs_mcp_server
+python tests/smoke_stdio.py
 ```
-
-The final command must print `50`.
-
-## Google API Limitations
-
-- Google does not expose rendered physical-page boundaries; `read_page` uses explicit page breaks.
-- Google does not expose editor undo or revision restore; `undo_last_action` reports that limitation.
-- Google does not expose bookmark creation; `insert_linked_bookmark` creates a named range.
-
-## Publishing
-
-See [docs/PUBLISHING.md](docs/PUBLISHING.md) for GitHub, PyPI, MCP Registry, and VS Code Marketplace steps.
 
 ## License
 

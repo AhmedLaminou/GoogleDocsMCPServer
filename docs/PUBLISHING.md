@@ -21,6 +21,14 @@ npm run compile
 cd ..
 ```
 
+Confirm that `google_docs_mcp_server/oauth_client.json` is a **Desktop app**
+OAuth client belonging to the production Google Cloud project. Never include a
+user token.
+
+Before public release, complete Google OAuth verification for the sensitive
+`documents` scope. Keep the public profile on `drive.file`; do not silently
+switch it to restricted full-Drive access.
+
 ## PyPI
 
 ```powershell

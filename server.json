@@ -3,7 +3,7 @@
   "name": "io.github.AhmedLaminou/google-docs-mcp-server",
   "title": "Google Docs MCP",
   "description": "Google Docs and Drive automation through 50 MCP tools.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "websiteUrl": "https://github.com/AhmedLaminou/GoogleDocsMCPServer",
   "repository": {
     "url": "https://github.com/AhmedLaminou/GoogleDocsMCPServer",
@@ -14,7 +14,7 @@
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "google-docs-mcp-server",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       },

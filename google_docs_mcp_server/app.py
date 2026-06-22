@@ -1,8 +1,6 @@
-import json
 import os
 import secrets
-from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -15,11 +13,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from google_docs_mcp_server.auth import (
-    CREDENTIALS_FILE,
+    LEGACY_TOKEN_FILE,
     SCOPES,
     TOKEN_FILE,
-    get_google_service,
     load_oauth_client_config,
+    save_credentials,
 )
 from google_docs_mcp_server.registry import register_all_tools
 
@@ -120,20 +118,7 @@ async def oauth2callback(request: Request, state: str, code: str):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     flow.fetch_token(authorization_response=str(request.url))
-    credentials = flow.credentials
-
-    # Save the token payload contextually
-    token_payload = {
-        "token": credentials.token,
-        "refresh_token": credentials.refresh_token,
-        "token_uri": credentials.token_uri,
-        "client_id": credentials.client_id,
-        "client_secret": credentials.client_secret,
-        "scopes": credentials.scopes,
-    }
-    TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with TOKEN_FILE.open("w", encoding="utf-8") as f:
-        json.dump(token_payload, f)
+    save_credentials(flow.credentials)
 
     return "OAuth Successful! The MCP Server now has access to your Google Docs. You can close this window."
 
@@ -169,7 +154,7 @@ app.mount("/messages/", _sse_transport.handle_post_message)
 async def health() -> dict[str, Any]:
     return {
         "status": "ok",
-        "authenticated": TOKEN_FILE.exists(),
+        "authenticated": TOKEN_FILE.exists() or LEGACY_TOKEN_FILE.exists(),
         "tool_count": 50,
     }
 

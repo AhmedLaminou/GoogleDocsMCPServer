@@ -56,7 +56,7 @@ def copy_doc(doc_id: str, new_title: str) -> dict[str, str]:
 
 
 def list_recent_docs(limit: int = 10) -> list[dict[str, str]]:
-    """List recently modified Google Docs."""
+    """List recently modified Docs visible to the active OAuth scope profile."""
     if limit < 1 or limit > 100:
         raise ValueError("limit must be between 1 and 100.")
     result = execute(
@@ -73,7 +73,7 @@ def list_recent_docs(limit: int = 10) -> list[dict[str, str]]:
 
 
 def search_docs(query: str, limit: int = 20) -> list[dict[str, str]]:
-    """Search Google Docs by filename or indexed full text."""
+    """Search Docs visible to the active OAuth scope profile."""
     if not query.strip():
         raise ValueError("query must not be empty.")
     if limit < 1 or limit > 100:

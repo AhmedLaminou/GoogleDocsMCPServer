@@ -14,7 +14,7 @@ The extension launches `google-docs-mcp-server` through `uvx`.
 
 ## First-time OAuth
 
-Run **Google Docs MCP: Start OAuth Setup** from the Command Palette. Complete consent in the browser, then configure `GOOGLE_TOKEN_FILE` if the token is not stored in the MCP process working directory.
+Run **Google Docs MCP: Start OAuth Setup** from the Command Palette. A local loopback OAuth flow opens in your browser and stores the token in your OS user configuration directory. Reload VS Code afterward.
 
 ## Development
 

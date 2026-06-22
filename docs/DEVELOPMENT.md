@@ -10,13 +10,19 @@ pip install -e .
 
 ## Run
 
+Authenticate:
+
+```powershell
+google-docs-mcp-auth login
+```
+
 Stdio:
 
 ```powershell
 google-docs-mcp-server
 ```
 
-OAuth and SSE:
+Optional SSE:
 
 ```powershell
 google-docs-mcp-web

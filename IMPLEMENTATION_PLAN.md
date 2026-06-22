@@ -1,36 +1,30 @@
-# Google Docs MCP Server — Implementation Status
+# Google Docs MCP Server — Status
 
 ## Completed
 
-- FastAPI application and MCP SSE transport
-- Google OAuth 2.0 web flow with state validation
-- Local file or environment-based OAuth client configuration
-- Optional bearer authentication for MCP routes
-- **50 registered MCP tools**
-- Google Docs reading, writing, formatting, tables, footnotes, and named ranges
-- Google Drive search, organization, sharing, comments, and PDF export
-- Unit and endpoint tests
-- Docker and production configuration examples
+- Stdio-first Python MCP package with 50 tools
+- One-command local browser OAuth
+- Stable per-user token storage
+- Safer public scope profile: `documents + drive.file`
+- Optional explicit full-Drive self-hosted profile
+- VS Code extension registration through `uvx`
+- Optional FastAPI/SSE deployment mode
+- Unit, stdio, SSE, package, and extension validation
 
-## External Setup Required
+## Maintainer action before public release
 
-- Complete `/login` once to create the user OAuth token.
-- For production, provide a persistent `GOOGLE_TOKEN_FILE` path.
-- For a public endpoint, configure `PUBLIC_BASE_URL`, `MCP_API_KEY`,
-  `MCP_SESSION_SECRET`, `ALLOWED_HOSTS`, and `COOKIE_SECURE=true`.
+1. Create a Google OAuth **Desktop app** client.
+2. Add its JSON as `google_docs_mcp_server/oauth_client.json`.
+3. Test with approved OAuth test users.
+4. Complete sensitive-scope OAuth verification.
+5. Publish the Python package, then the VS Code extension.
 
-## Upstream Google API Limitations
+End users should only install, run `google-docs-mcp-auth login`, and approve
+access to their own Google account.
 
-- Rendered physical page boundaries cannot be queried. `read_page` uses explicit
+## Google API limitations
+
+- Physical rendered page boundaries are unavailable; `read_page` uses explicit
   page breaks.
-- Editor undo and revision restoration are not available through the Docs API.
-  `undo_last_action` reports this limitation and links to the editor.
-- Bookmark creation is unavailable. `insert_linked_bookmark` creates a named
-  range, which is the closest API-supported anchor.
-
-## Future Enhancements
-
-- Multi-user token storage and per-user authorization
-- Structured logging and metrics
-- Integration tests against a dedicated Google Workspace test document
-- Streamable HTTP transport migration when client support requires it
+- Editor undo/revision restore is unavailable through the Docs API.
+- Bookmark creation is unavailable; the tool creates a named range.

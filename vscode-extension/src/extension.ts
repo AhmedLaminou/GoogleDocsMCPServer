@@ -5,11 +5,10 @@ export function activate(context: vscode.ExtensionContext) {
         'google-docs-mcp.startOAuth',
         async () => {
             const terminal = vscode.window.createTerminal('Google Docs MCP OAuth');
-            terminal.sendText('uvx --from google-docs-mcp-server google-docs-mcp-web');
+            terminal.sendText('uvx --from google-docs-mcp-server google-docs-mcp-auth login');
             terminal.show();
-            await vscode.env.openExternal(vscode.Uri.parse('http://localhost:8000/login'));
             void vscode.window.showInformationMessage(
-                'Complete Google consent in your browser, then keep token.json in the MCP working directory or set GOOGLE_TOKEN_FILE.'
+                'Complete Google consent in your browser, then reload VS Code so the MCP server can use your local token.'
             );
         }
     );

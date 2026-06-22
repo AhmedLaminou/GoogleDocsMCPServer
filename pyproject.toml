@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "google-docs-mcp-server"
-version = "0.1.0"
-description = "Google Docs and Drive MCP server with 50 document, formatting, extraction, and collaboration tools"
+version = "0.2.0"
+description = "Stdio-first Google Docs and Drive MCP server with local browser OAuth and 50 tools"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
@@ -42,10 +42,17 @@ Issues = "https://github.com/AhmedLaminou/GoogleDocsMCPServer/issues"
 
 [project.scripts]
 google-docs-mcp-server = "google_docs_mcp_server.server:main"
+google-docs-mcp-auth = "google_docs_mcp_server.auth_cli:main"
 google-docs-mcp-web = "google_docs_mcp_server.web:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["google_docs_mcp_server"]
+
+[tool.hatch.build]
+include = [
+    "google_docs_mcp_server/**/*.py",
+    "google_docs_mcp_server/*.json"
+]
 
 [tool.hatch.build.targets.sdist]
 include = [

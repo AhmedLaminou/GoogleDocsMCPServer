@@ -3,11 +3,13 @@ from __future__ import annotations
 import asyncio
 import os
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 import main
+from google_docs_mcp_server import auth
 from google_docs_mcp_server.tools import (
     extraction_tools,
     formatting_tools,
@@ -142,6 +144,35 @@ class ServerTests(unittest.TestCase):
             "/oauth2callback?state=bad&code=bad"
         )
         self.assertEqual(400, response.status_code)
+
+    def test_public_scope_profile_avoids_restricted_full_drive(self):
+        scopes = auth.scopes_for_profile("default")
+        self.assertIn(auth.DOCS_SCOPE, scopes)
+        self.assertIn(auth.DRIVE_FILE_SCOPE, scopes)
+        self.assertNotIn(auth.FULL_DRIVE_SCOPE, scopes)
+
+    def test_full_profile_is_explicit(self):
+        self.assertEqual(
+            [auth.DOCS_SCOPE, auth.FULL_DRIVE_SCOPE],
+            auth.scopes_for_profile("full"),
+        )
+
+    def test_local_auth_uses_stable_config_directory(self):
+        self.assertNotEqual(Path.cwd() / "token.json", auth.TOKEN_FILE)
+
+    def test_local_auth_rejects_web_client(self):
+        with patch.object(
+            auth,
+            "load_oauth_client_config",
+            return_value={"web": {"client_id": "test"}},
+        ):
+            with self.assertRaisesRegex(RuntimeError, "Desktop app"):
+                auth.load_desktop_oauth_client_config()
+
+    def test_local_auth_accepts_desktop_client(self):
+        config = {"installed": {"client_id": "test", "client_secret": "test"}}
+        with patch.object(auth, "load_oauth_client_config", return_value=config):
+            self.assertEqual(config, auth.load_desktop_oauth_client_config())
 
 
 class CommonHelperTests(unittest.TestCase):
