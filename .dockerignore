@@ -1,0 +1,11 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+credentials.json
+token.json
+tests/
+vscode-extension/
+src/

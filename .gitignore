@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+
+# Secrets and auth artifacts
+credentials.json
+token.json
+
+# OS/editor
+.DS_Store
+.vscode/
+.env
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+vscode-extension/node_modules/
+vscode-extension/out/
+vscode-extension/*.vsix

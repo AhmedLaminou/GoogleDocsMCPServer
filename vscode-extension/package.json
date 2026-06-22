@@ -1,0 +1,78 @@
+{
+  "name": "google-docs-mcp-extension",
+  "displayName": "Google Docs MCP",
+  "description": "50-tool Google Docs and Drive MCP server for GitHub Copilot Agent.",
+  "version": "0.1.0",
+  "publisher": "ahmedlaminou",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "mcp",
+    "google docs",
+    "google drive",
+    "copilot",
+    "agent",
+    "documents",
+    "automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AhmedLaminou/GoogleDocsMCPServer"
+  },
+  "bugs": {
+    "url": "https://github.com/AhmedLaminou/GoogleDocsMCPServer/issues"
+  },
+  "homepage": "https://github.com/AhmedLaminou/GoogleDocsMCPServer#readme",
+  "license": "MIT",
+  "galleryBanner": {
+    "color": "#0f9d58",
+    "theme": "dark"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "mcpServers": {
+      "google-docs-mcp": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": [
+          "google-docs-mcp-server"
+        ],
+        "description": "Google Docs and Drive automation through 50 document, formatting, extraction, and collaboration tools."
+      }
+    },
+    "commands": [
+      {
+        "command": "google-docs-mcp.startOAuth",
+        "title": "Google Docs MCP: Start OAuth Setup",
+        "category": "Google Docs MCP"
+      },
+      {
+        "command": "google-docs-mcp.restartServer",
+        "title": "Google Docs MCP: Restart Server",
+        "category": "Google Docs MCP"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npx vsce package",
+    "publish": "npx vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.99.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "@vscode/vsce": "^3.9.2"
+  }
+}
