@@ -23,6 +23,10 @@ After publication:
 uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login
 ```
 
+If the Google OAuth app is still in **Testing**, only Google accounts added as
+test users in Google Cloud can complete this login. Production/public use
+requires publishing the OAuth app and completing any required Google verification.
+
 The browser consent flow stores the token in:
 
 - Windows: `%APPDATA%\GoogleDocsMCP\token.json`
@@ -69,14 +73,21 @@ The public/default profile requests:
 - `documents` — read and edit Google Docs.
 - `drive.file` — Drive operations for files created by or explicitly opened with the app.
 
-This avoids the restricted full-Drive scope. Broad Drive listing/search and permission operations therefore only see files available to `drive.file`.
+This avoids the restricted full-Drive scope. The default profile can keep
+working with Docs the app created in earlier sessions, but broad Drive
+listing/search only sees files available to `drive.file`; it cannot enumerate
+unrelated pre-existing Drive content.
 
-Self-hosters can intentionally opt into restricted full-Drive access:
+Self-hosters and power users can intentionally opt into restricted full-Drive
+access when they need broad discovery of existing Drive files:
 
 ```powershell
 $env:GOOGLE_DOCS_MCP_SCOPE_PROFILE = "full"
 google-docs-mcp-auth login --full-drive
 ```
+
+Full Drive uses `https://www.googleapis.com/auth/drive`, which is a restricted
+Google scope and may require a heavier OAuth verification process.
 
 ## Developer setup
 
@@ -131,6 +142,9 @@ python -m unittest discover -s tests -v
 python -m compileall google_docs_mcp_server
 python tests/smoke_stdio.py
 ```
+
+The stdio smoke test verifies registration. Live Google Docs/Drive behavior
+requires a local authenticated account.
 
 ## License
 

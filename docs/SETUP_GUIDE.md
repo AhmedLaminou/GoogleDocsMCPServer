@@ -8,6 +8,9 @@ End users need Python/`uv` and a Google account, not a Google Cloud project.
 uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login
 ```
 
+If the OAuth app is in Testing, the Google account must be added as a test user
+by the maintainer.
+
 After consent, an MCP client launches:
 
 ```powershell
@@ -44,6 +47,8 @@ Google Auth Platform → Audience → Test users
 ```
 
 Only listed accounts can consent.
+Testing-mode grants expire after seven days, including refresh tokens obtained
+for offline access.
 
 ## Production and verification
 
@@ -63,6 +68,11 @@ Opt into full Drive:
 $env:GOOGLE_DOCS_MCP_SCOPE_PROFILE = "full"
 google-docs-mcp-auth login --full-drive --force
 ```
+
+Full Drive is useful for broad discovery of existing Drive files, but it uses
+the restricted `https://www.googleapis.com/auth/drive` scope. Keep the default
+`drive.file` profile for public release unless restricted-scope verification is
+intentional.
 
 ## Optional SSE
 
