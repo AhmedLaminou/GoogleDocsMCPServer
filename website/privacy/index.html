@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy | AhmedLaminou Docs MCP</title>
+    <meta name="description" content="Privacy policy for AhmedLaminou Docs MCP.">
+    <link rel="stylesheet" href="../assets/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../" aria-label="AhmedLaminou Docs MCP home">
+        <span class="brand-mark" aria-hidden="true">DM</span>
+        <span>AhmedLaminou Docs MCP</span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="../">Home</a>
+        <a href="../terms/">Terms</a>
+        <a href="https://github.com/AhmedLaminou/GoogleDocsMCPServer">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="legal-page">
+      <article class="legal reveal">
+        <p class="eyebrow">Last updated: 2026-06-24</p>
+        <h1>Privacy Policy</h1>
+        <p>
+          AhmedLaminou Docs MCP is an open-source local MCP server for
+          automating Google Docs and Google Drive actions from compatible AI
+          clients.
+        </p>
+
+        <h2>Data the app accesses</h2>
+        <p>When you authenticate with Google, the app may request access to:</p>
+        <ul>
+          <li>Google Docs content, so it can create, read, edit, and format documents at your request.</li>
+          <li>Google Drive file access through <code>drive.file</code>, so it can manage files available to the app.</li>
+          <li>Optional full-Drive access only if you explicitly use the <code>--full-drive</code> profile.</li>
+        </ul>
+
+        <h2>How data is used</h2>
+        <p>
+          Google user data is used only to provide the MCP tools you invoke,
+          such as creating documents, editing text, exporting files, listing
+          permitted files, managing folders, comments, revisions, permissions,
+          images, tables, and document tabs.
+        </p>
+        <p>The app does not use Google user data for advertising, profiling, or selling data.</p>
+
+        <h2>Local storage</h2>
+        <p>
+          In the default stdio setup, the MCP server runs on your own machine.
+          Your Google OAuth token is stored locally in your operating-system
+          user configuration directory.
+        </p>
+        <ul>
+          <li>Windows: <code>%APPDATA%\GoogleDocsMCP\token.json</code></li>
+          <li>macOS: <code>~/Library/Application Support/GoogleDocsMCP/token.json</code></li>
+          <li>Linux: <code>~/.config/google-docs-mcp/token.json</code></li>
+        </ul>
+        <p>
+          The publisher does not receive your OAuth token or document contents
+          when you use the local stdio server.
+        </p>
+
+        <h2>Sharing and disclosure</h2>
+        <p>
+          The project does not operate a public backend service for collecting
+          or storing your Google Docs data. Data may still be processed by
+          Google APIs, your chosen AI client, or any self-hosted deployment you
+          configure.
+        </p>
+
+        <h2>Data retention and deletion</h2>
+        <p>The local server keeps your OAuth token until you remove it:</p>
+        <pre><code>google-docs-mcp-auth logout</code></pre>
+        <p>
+          You can also revoke the app's access from your Google Account security
+          settings. Documents and Drive files created or modified through the app
+          remain in your Google account unless you delete or trash them.
+        </p>
+
+        <h2>Contact</h2>
+        <p>For privacy or security questions, contact <a href="mailto:ahmedlaminouamadou@gmail.com">ahmedlaminouamadou@gmail.com</a>.</p>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <p>AhmedLaminou Docs MCP is open-source software by Ahmed Laminou Amadou.</p>
+      <div>
+        <a href="../">Home</a>
+        <a href="../terms/">Terms of Service</a>
+      </div>
+    </footer>
+    <script src="../assets/app.js"></script>
+  </body>
+</html>

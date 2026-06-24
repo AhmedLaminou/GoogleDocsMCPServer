@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AhmedLaminou Docs MCP</title>
+    <meta
+      name="description"
+      content="AhmedLaminou Docs MCP is an open-source local MCP server for Google Docs and Google Drive automation."
+    >
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="AhmedLaminou Docs MCP home">
+        <span class="brand-mark" aria-hidden="true">DM</span>
+        <span>AhmedLaminou Docs MCP</span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#data-use">Data use</a>
+        <a href="#access">Access</a>
+        <a href="privacy/">Privacy</a>
+        <a href="terms/">Terms</a>
+        <a href="https://github.com/AhmedLaminou/GoogleDocsMCPServer">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Open-source MCP server</p>
+          <h1>AhmedLaminou Docs MCP</h1>
+          <p class="lead">
+            A local Model Context Protocol server that lets compatible AI
+            clients create, edit, format, export, organize, and inspect Google
+            Docs and permitted Google Drive files at your request.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/AhmedLaminou/GoogleDocsMCPServer">View on GitHub</a>
+            <a class="button secondary" href="privacy/">Privacy Policy</a>
+          </div>
+        </div>
+
+        <div class="product-panel reveal" aria-label="Google Docs MCP workflow diagram">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span></span><span></span><span></span>
+            </div>
+            <pre><code>uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login
+google-docs-mcp-server
+
+Tools exposed: 100
+Transport: local stdio
+Token storage: your machine</code></pre>
+          </div>
+          <div class="flow">
+            <div>AI Client</div>
+            <span></span>
+            <div>Local MCP Server</div>
+            <span></span>
+            <div>Your Google Docs</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="data-use">
+        <div class="section-heading reveal">
+          <p class="eyebrow">Purpose and Google data use</p>
+          <h2>Built for user-directed document automation</h2>
+        </div>
+        <div class="grid three">
+          <article class="card reveal">
+            <h3>Create and edit Docs</h3>
+            <p>
+              The server uses Google Docs access to create documents, read
+              document content, insert text, format paragraphs, manage tables,
+              headers, footers, links, comments, images, named ranges, and tabs.
+            </p>
+          </article>
+          <article class="card reveal">
+            <h3>Manage permitted Drive files</h3>
+            <p>
+              The default profile uses per-file Drive access so the server can
+              rename, move, export, share, trash, restore, and inspect files
+              created or explicitly available to the app.
+            </p>
+          </article>
+          <article class="card reveal">
+            <h3>Run locally by default</h3>
+            <p>
+              In the default stdio setup, the publisher does not receive your
+              OAuth token or document content. Tokens are stored on your own
+              computer.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section split" id="access">
+        <div class="text-block reveal">
+          <p class="eyebrow">OAuth access</p>
+          <h2>Default mode is narrow; full Drive is opt-in</h2>
+          <p>
+            The public default profile requests Google Docs access and
+            <code>drive.file</code>. This supports creating and continuing work
+            on app-created documents while avoiding unrestricted access to every
+            file in a user's Drive.
+          </p>
+          <p>
+            Users who intentionally need broad discovery of existing Drive files
+            can use the optional full-Drive profile, which requests Google's
+            restricted <code>drive</code> scope.
+          </p>
+        </div>
+        <div class="scope-list reveal">
+          <div>
+            <strong>Default scopes</strong>
+            <code>https://www.googleapis.com/auth/documents</code>
+            <code>https://www.googleapis.com/auth/drive.file</code>
+          </div>
+          <div>
+            <strong>Optional full-Drive scope</strong>
+            <code>https://www.googleapis.com/auth/drive</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="section band">
+        <div class="section-heading reveal">
+          <p class="eyebrow">Install</p>
+          <h2>Use from PyPI or VS Code</h2>
+        </div>
+        <div class="install reveal">
+          <pre><code>uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login</code></pre>
+          <pre><code>{
+  "mcpServers": {
+    "google-docs": {
+      "command": "uvx",
+      "args": ["--from", "google-docs-mcp-server-ahmedlaminou", "google-docs-mcp-server"]
+    }
+  }
+}</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>AhmedLaminou Docs MCP is open-source software by Ahmed Laminou Amadou.</p>
+      <div>
+        <a href="privacy/">Privacy Policy</a>
+        <a href="terms/">Terms of Service</a>
+        <a href="https://github.com/AhmedLaminou/GoogleDocsMCPServer">GitHub Repository</a>
+      </div>
+    </footer>
+
+    <script src="assets/app.js"></script>
+  </body>
+</html>

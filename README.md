@@ -123,6 +123,7 @@ It is not the default public architecture because true multi-user hosting requir
 
 - [Privacy Policy](docs/PRIVACY_POLICY.md)
 - [Terms of Service](docs/TERMS_OF_SERVICE.md)
+- [GitHub Pages setup for OAuth branding](docs/GITHUB_PAGES_SETUP.md)
 
 ## Capabilities
 
