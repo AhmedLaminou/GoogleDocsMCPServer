@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0
+
+- Expanded the native tool set from 50 to 100 tools.
+- Added Drive rename, restore, folders, permissions, revisions, and multi-format export.
+- Added safer prepend, replace-content, and end-index document operations.
+- Added links, richer text/paragraph formatting, headers, footers, sections, and page setup.
+- Added table row/column insertion, deletion, merging, and unmerging.
+- Added image inspection/replacement, named-range management, and full comment/reply editing.
+- Added document structure and Google Docs tab tools.
+- Fixed `move_to_folder` documentation to match its exclusive-move behavior.
+- Added OAuth credential ignore safeguards and release CI.
+- Changed the PyPI distribution name to `google-docs-mcp-server-ahmedlaminou`
+  because the shorter name is owned by another publisher.
+
 ## 0.2.0
 
 - Made stdio the primary package and extension transport.

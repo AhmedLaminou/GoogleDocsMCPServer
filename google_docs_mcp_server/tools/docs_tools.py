@@ -7,6 +7,7 @@ from typing import Any
 
 from google_docs_mcp_server.tools.common import (
     document_body,
+    document_end_index,
     escape_drive_query,
     execute,
     extract_text,
@@ -14,7 +15,20 @@ from google_docs_mcp_server.tools.common import (
 )
 
 DOC_MIME_TYPE = "application/vnd.google-apps.document"
+FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
 PDF_MIME_TYPE = "application/pdf"
+EXPORT_FORMATS = {
+    "pdf": ("application/pdf", ".pdf"),
+    "docx": (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".docx",
+    ),
+    "odt": ("application/vnd.oasis.opendocument.text", ".odt"),
+    "txt": ("text/plain", ".txt"),
+    "html": ("application/zip", ".html.zip"),
+    "epub": ("application/epub+zip", ".epub"),
+    "rtf": ("application/rtf", ".rtf"),
+}
 
 
 def create_doc(title: str) -> dict[str, str]:
@@ -37,6 +51,36 @@ def delete_doc(doc_id: str) -> dict[str, Any]:
         .update(fileId=doc_id, body={"trashed": True}, fields="id, trashed")
     )
     return {"document_id": file.get("id", doc_id), "trashed": file.get("trashed", True)}
+
+
+def restore_doc(doc_id: str) -> dict[str, Any]:
+    """Restore a document from Google Drive trash."""
+    file = execute(
+        get_service("v3")
+        .files()
+        .update(
+            fileId=doc_id,
+            body={"trashed": False},
+            fields="id,name,trashed,webViewLink",
+        )
+    )
+    return file
+
+
+def rename_doc(doc_id: str, new_title: str) -> dict[str, Any]:
+    """Rename a Google Doc in Drive."""
+    title = new_title.strip()
+    if not title:
+        raise ValueError("new_title must not be empty.")
+    return execute(
+        get_service("v3")
+        .files()
+        .update(
+            fileId=doc_id,
+            body={"name": title},
+            fields="id,name,modifiedTime,webViewLink",
+        )
+    )
 
 
 def copy_doc(doc_id: str, new_title: str) -> dict[str, str]:
@@ -117,7 +161,7 @@ def get_doc_metadata(doc_id: str) -> dict[str, Any]:
 
 
 def move_to_folder(doc_id: str, folder_id: str) -> dict[str, Any]:
-    """Move a document into one Drive folder while preserving other parents."""
+    """Move a document exclusively into one Drive folder."""
     service = get_service("v3")
     current = execute(service.files().get(fileId=doc_id, fields="parents"))
     previous_parents = ",".join(current.get("parents", []))
@@ -132,23 +176,113 @@ def move_to_folder(doc_id: str, folder_id: str) -> dict[str, Any]:
     return moved
 
 
-def export_to_pdf(doc_id: str, max_bytes: int = 10_000_000) -> dict[str, Any]:
-    """Export a Google Doc as a base64-encoded PDF payload."""
+def add_to_folder(doc_id: str, folder_id: str) -> dict[str, Any]:
+    """Add a Drive folder as a parent without removing existing parents."""
+    return execute(
+        get_service("v3")
+        .files()
+        .update(
+            fileId=doc_id,
+            addParents=folder_id,
+            fields="id,name,parents,webViewLink",
+        )
+    )
+
+
+def remove_from_folder(doc_id: str, folder_id: str) -> dict[str, Any]:
+    """Remove one parent folder from a document."""
+    return execute(
+        get_service("v3")
+        .files()
+        .update(
+            fileId=doc_id,
+            removeParents=folder_id,
+            fields="id,name,parents,webViewLink",
+        )
+    )
+
+
+def create_folder(name: str, parent_id: str = "") -> dict[str, Any]:
+    """Create a Drive folder, optionally inside another folder."""
+    folder_name = name.strip()
+    if not folder_name:
+        raise ValueError("name must not be empty.")
+    body: dict[str, Any] = {"name": folder_name, "mimeType": FOLDER_MIME_TYPE}
+    if parent_id.strip():
+        body["parents"] = [parent_id.strip()]
+    return execute(
+        get_service("v3")
+        .files()
+        .create(body=body, fields="id,name,parents,webViewLink")
+    )
+
+
+def list_folders(query: str = "", limit: int = 20) -> list[dict[str, Any]]:
+    """List folders visible to the active OAuth scope profile."""
+    if limit < 1 or limit > 100:
+        raise ValueError("limit must be between 1 and 100.")
+    drive_query = f"mimeType='{FOLDER_MIME_TYPE}' and trashed=false"
+    if query.strip():
+        drive_query += f" and name contains '{escape_drive_query(query.strip())}'"
+    result = execute(
+        get_service("v3")
+        .files()
+        .list(
+            q=drive_query,
+            orderBy="modifiedTime desc",
+            pageSize=limit,
+            fields="files(id,name,parents,modifiedTime,webViewLink)",
+        )
+    )
+    return result.get("files", [])
+
+
+def list_folder_contents(folder_id: str, limit: int = 100) -> list[dict[str, Any]]:
+    """List files and folders directly contained in a Drive folder."""
+    if limit < 1 or limit > 1000:
+        raise ValueError("limit must be between 1 and 1000.")
+    result = execute(
+        get_service("v3")
+        .files()
+        .list(
+            q=f"'{escape_drive_query(folder_id)}' in parents and trashed=false",
+            orderBy="folder,name",
+            pageSize=min(limit, 1000),
+            fields="files(id,name,mimeType,modifiedTime,parents,webViewLink,size)",
+        )
+    )
+    return result.get("files", [])
+
+
+def export_doc(
+    doc_id: str, output_format: str = "pdf", max_bytes: int = 10_000_000
+) -> dict[str, Any]:
+    """Export a Google Doc as a base64 payload in a supported format."""
     if max_bytes < 1:
         raise ValueError("max_bytes must be positive.")
+    selected = output_format.strip().lower()
+    if selected not in EXPORT_FORMATS:
+        raise ValueError(f"output_format must be one of {sorted(EXPORT_FORMATS)}.")
+    mime_type, suffix = EXPORT_FORMATS[selected]
     service = get_service("v3")
     metadata = execute(service.files().get(fileId=doc_id, fields="name"))
-    pdf_bytes = execute(service.files().export(fileId=doc_id, mimeType=PDF_MIME_TYPE))
-    if len(pdf_bytes) > max_bytes:
+    exported_bytes = execute(service.files().export(fileId=doc_id, mimeType=mime_type))
+    if len(exported_bytes) > max_bytes:
         raise ValueError(
-            f"Exported PDF is {len(pdf_bytes)} bytes, exceeding max_bytes={max_bytes}."
+            f"Exported file is {len(exported_bytes)} bytes, exceeding max_bytes={max_bytes}."
         )
     return {
-        "filename": f"{metadata.get('name', doc_id)}.pdf",
-        "mime_type": PDF_MIME_TYPE,
-        "size_bytes": len(pdf_bytes),
-        "base64": base64.b64encode(pdf_bytes).decode("ascii"),
+        "filename": f"{metadata.get('name', doc_id)}{suffix}",
+        "format": selected,
+        "mime_type": mime_type,
+        "size_bytes": len(exported_bytes),
+        "base64": base64.b64encode(exported_bytes).decode("ascii"),
     }
+
+
+def export_to_pdf(doc_id: str, max_bytes: int = 10_000_000) -> dict[str, Any]:
+    """Export a Google Doc as a base64-encoded PDF payload."""
+    return export_doc(doc_id, "pdf", max_bytes)
 
 
 def share_doc(doc_id: str, email: str, role: str = "writer") -> dict[str, Any]:
@@ -190,6 +324,57 @@ def unshare_doc(doc_id: str, email: str) -> dict[str, Any]:
     return {"email": email, "removed_permission_ids": [p["id"] for p in matches]}
 
 
+def list_permissions(doc_id: str) -> list[dict[str, Any]]:
+    """List Drive permissions on a document."""
+    result = execute(
+        get_service("v3")
+        .permissions()
+        .list(
+            fileId=doc_id,
+            fields=(
+                "permissions(id,type,role,emailAddress,displayName,domain,"
+                "allowFileDiscovery,expirationTime)"
+            ),
+        )
+    )
+    return result.get("permissions", [])
+
+
+def update_permission(doc_id: str, permission_id: str, role: str) -> dict[str, Any]:
+    """Change a user permission to reader, commenter, or writer."""
+    if role not in {"reader", "commenter", "writer"}:
+        raise ValueError("role must be reader, commenter, or writer.")
+    return execute(
+        get_service("v3")
+        .permissions()
+        .update(
+            fileId=doc_id,
+            permissionId=permission_id,
+            body={"role": role},
+            fields="id,type,role,emailAddress,displayName",
+        )
+    )
+
+
+def list_revisions(doc_id: str, limit: int = 100) -> list[dict[str, Any]]:
+    """List available Drive revision metadata for a document."""
+    if limit < 1 or limit > 1000:
+        raise ValueError("limit must be between 1 and 1000.")
+    result = execute(
+        get_service("v3")
+        .revisions()
+        .list(
+            fileId=doc_id,
+            pageSize=limit,
+            fields=(
+                "revisions(id,modifiedTime,keepForever,published,publishAuto,"
+                "publishedOutsideDomain,lastModifyingUser(displayName,emailAddress))"
+            ),
+        )
+    )
+    return result.get("revisions", [])
+
+
 def read_full_doc(doc_id: str) -> str:
     """Read all body text, including text nested in tables."""
     document = execute(get_service("v1").documents().get(documentId=doc_id))
@@ -216,6 +401,60 @@ def append_text(doc_id: str, text: str) -> dict[str, Any]:
         )
     )
     return {"document_id": doc_id, "appended_characters": len(text), "response": response}
+
+
+def prepend_text(doc_id: str, text: str) -> dict[str, Any]:
+    """Insert text at the beginning of the document body."""
+    response = execute(
+        get_service("v1")
+        .documents()
+        .batchUpdate(
+            documentId=doc_id,
+            body={
+                "requests": [
+                    {"insertText": {"location": {"index": 1}, "text": text}}
+                ]
+            },
+        )
+    )
+    return {"document_id": doc_id, "prepended_characters": len(text), "response": response}
+
+
+def replace_document_content(doc_id: str, text: str) -> dict[str, Any]:
+    """Atomically replace all body text with new text."""
+    service = get_service("v1")
+    document = execute(service.documents().get(documentId=doc_id))
+    end_index = document_end_index(document)
+    requests: list[dict[str, Any]] = []
+    if end_index > 1:
+        requests.append(
+            {
+                "deleteContentRange": {
+                    "range": {"startIndex": 1, "endIndex": end_index}
+                }
+            }
+        )
+    if text:
+        requests.append({"insertText": {"location": {"index": 1}, "text": text}})
+    if not requests:
+        return {"document_id": doc_id, "replaced": False, "reason": "already empty"}
+    response = execute(
+        service.documents().batchUpdate(
+            documentId=doc_id, body={"requests": requests}
+        )
+    )
+    return {
+        "document_id": doc_id,
+        "replaced": True,
+        "inserted_characters": len(text),
+        "response": response,
+    }
+
+
+def get_document_end_index(doc_id: str) -> dict[str, Any]:
+    """Return the final writable body index for safe append/insert operations."""
+    document = execute(get_service("v1").documents().get(documentId=doc_id))
+    return {"document_id": doc_id, "end_index": document_end_index(document)}
 
 
 def find_and_replace(

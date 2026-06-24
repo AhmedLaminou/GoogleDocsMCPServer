@@ -12,6 +12,7 @@ venv/
 # Secrets and auth artifacts
 credentials.json
 token.json
+google_docs_mcp_server/oauth_client.json
 
 # OS/editor
 .DS_Store

@@ -20,8 +20,8 @@ async def main() -> None:
             await session.initialize()
             result = await session.list_tools()
             print(f"sse_tool_count: {len(result.tools)}")
-            if len(result.tools) != 50:
-                raise RuntimeError(f"Expected 50 tools, got {len(result.tools)}.")
+            if len(result.tools) != 100:
+                raise RuntimeError(f"Expected 100 tools, got {len(result.tools)}.")
 
 
 if __name__ == "__main__":

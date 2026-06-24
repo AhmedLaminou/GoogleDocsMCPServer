@@ -36,7 +36,7 @@ python -m unittest discover -s tests -v
 python -c "import asyncio; from google_docs_mcp_server.server import mcp; print(len(asyncio.run(mcp.list_tools())))"
 ```
 
-Expected tool count: `50`.
+Expected tool count: `100`.
 
 Extension:
 

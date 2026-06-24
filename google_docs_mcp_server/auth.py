@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import httplib2
+from google_auth_httplib2 import AuthorizedHttp
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -178,6 +180,18 @@ def logout() -> bool:
     return True
 
 
+def api_http_timeout_seconds() -> int:
+    """Return the per-request Google API HTTP timeout in seconds."""
+    raw_value = os.getenv("GOOGLE_DOCS_MCP_HTTP_TIMEOUT", "60")
+    try:
+        timeout = int(raw_value)
+    except ValueError as exc:
+        raise ValueError("GOOGLE_DOCS_MCP_HTTP_TIMEOUT must be an integer.") from exc
+    if timeout < 1:
+        raise ValueError("GOOGLE_DOCS_MCP_HTTP_TIMEOUT must be at least 1.")
+    return timeout
+
+
 def get_google_service(api_version: str = "v1"):
     """Build an authenticated Google Docs v1 or Drive v3 client."""
     credentials = load_credentials()
@@ -186,8 +200,12 @@ def get_google_service(api_version: str = "v1"):
             "Google Docs MCP is not authenticated. Run `google-docs-mcp-auth login` "
             "once, then restart the MCP client."
         )
+    http = AuthorizedHttp(
+        credentials,
+        http=httplib2.Http(timeout=api_http_timeout_seconds()),
+    )
     if api_version == "v1":
-        return build("docs", "v1", credentials=credentials, cache_discovery=False)
+        return build("docs", "v1", http=http, cache_discovery=False)
     if api_version == "v3":
-        return build("drive", "v3", credentials=credentials, cache_discovery=False)
+        return build("drive", "v3", http=http, cache_discovery=False)
     raise ValueError(f"Unsupported Google API version: {api_version}")

@@ -1,8 +1,8 @@
 {
   "name": "google-docs-mcp-extension",
   "displayName": "Google Docs MCP",
-  "description": "50-tool Google Docs and Drive MCP server for GitHub Copilot Agent.",
-  "version": "0.2.0",
+  "description": "100-tool Google Docs and Drive MCP server for GitHub Copilot Agent.",
+  "version": "0.3.0",
   "publisher": "ahmedlaminou",
   "engines": {
     "vscode": "^1.99.0"
@@ -34,6 +34,7 @@
     "color": "#0f9d58",
     "theme": "dark"
   },
+  "icon": "icon.png",
   "main": "./out/extension.js",
   "activationEvents": [
     "onStartupFinished"
@@ -44,9 +45,11 @@
         "type": "stdio",
         "command": "uvx",
         "args": [
+          "--from",
+          "google-docs-mcp-server-ahmedlaminou",
           "google-docs-mcp-server"
         ],
-        "description": "Google Docs and Drive automation through 50 document, formatting, extraction, and collaboration tools."
+        "description": "Google Docs and Drive automation through 100 document, formatting, extraction, folder, image, tab, and collaboration tools."
       }
     },
     "commands": [

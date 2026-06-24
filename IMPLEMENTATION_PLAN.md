@@ -2,7 +2,7 @@
 
 ## Completed
 
-- Stdio-first Python MCP package with 50 tools
+- Stdio-first Python MCP package with 100 tools
 - One-command local browser OAuth
 - Stable per-user token storage
 - Safer public scope profile: `documents + drive.file`
@@ -11,10 +11,11 @@
 - Optional FastAPI/SSE deployment mode
 - Unit, stdio, SSE, package, and extension validation
 
-## Maintainer action before public release
+## Maintainer action before the 0.3.0 public release
 
 1. Create a Google OAuth **Desktop app** client.
-2. Add its JSON as `google_docs_mcp_server/oauth_client.json`.
+2. Inject its JSON as `google_docs_mcp_server/oauth_client.json` only for the
+   release build; the path is ignored by Git.
 3. Test with approved OAuth test users.
 4. Complete sensitive-scope OAuth verification.
 5. Publish the Python package, then the VS Code extension.

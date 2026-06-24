@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.AhmedLaminou/google-docs-mcp-server -->
 
-An open-source, stdio-first MCP server exposing **50 Google Docs and Drive tools**.
+An open-source, stdio-first MCP server exposing **100 Google Docs and Drive tools**.
 
 ## User experience
 
@@ -20,7 +20,7 @@ The publisher does not receive user tokens or document content in local stdio mo
 After publication:
 
 ```powershell
-uvx --from google-docs-mcp-server google-docs-mcp-auth login
+uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login
 ```
 
 The browser consent flow stores the token in:
@@ -36,6 +36,13 @@ google-docs-mcp-auth status
 google-docs-mcp-auth logout
 ```
 
+Optional reliability settings:
+
+```powershell
+$env:GOOGLE_DOCS_MCP_HTTP_TIMEOUT = "60"
+$env:GOOGLE_DOCS_MCP_API_RETRIES = "2"
+```
+
 ## MCP client
 
 ```json
@@ -43,7 +50,11 @@ google-docs-mcp-auth logout
   "mcpServers": {
     "google-docs": {
       "command": "uvx",
-      "args": ["google-docs-mcp-server"]
+      "args": [
+        "--from",
+        "google-docs-mcp-server-ahmedlaminou",
+        "google-docs-mcp-server"
+      ]
     }
   }
 }
@@ -99,10 +110,17 @@ It is not the default public architecture because true multi-user hosting requir
 
 ## Capabilities
 
-- Document creation, copying, deletion, metadata, organization, sharing, and PDF export.
-- Reading text, ranges, headings, footnotes, links, and tables.
-- Text, list, image, footnote, table, and table-cell insertion.
-- Formatting, comments, replies, named ranges, and batch updates.
+- Document creation, rename, copy, trash/restore, metadata, folders, permissions,
+  revisions, and multi-format export.
+- Reading text, ranges, headings, footnotes, links, tables, images, structure,
+  named ranges, and document tabs.
+- Text, lists, links, images, headers, footers, footnotes, sections, tables,
+  table rows/columns, and tab insertion.
+- Rich formatting, comments/replies, named ranges, page setup, and raw batch updates.
+
+Image generation remains provider-neutral: an AI client may generate an image
+with any capable model or service, then pass its public URL to
+`insert_external_image` or `replace_image`.
 
 See [docs/TOOLS_REFERENCE.md](docs/TOOLS_REFERENCE.md).
 

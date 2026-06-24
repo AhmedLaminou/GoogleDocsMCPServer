@@ -5,10 +5,14 @@
 End users need Python/`uv` and a Google account, not a Google Cloud project.
 
 ```powershell
-uvx --from google-docs-mcp-server google-docs-mcp-auth login
+uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-auth login
 ```
 
-After consent, an MCP client launches `uvx google-docs-mcp-server`.
+After consent, an MCP client launches:
+
+```powershell
+uvx --from google-docs-mcp-server-ahmedlaminou google-docs-mcp-server
+```
 
 ## Maintainer: Google Cloud
 
@@ -16,7 +20,8 @@ After consent, an MCP client launches `uvx google-docs-mcp-server`.
 2. Enable Google Docs API and Google Drive API.
 3. Configure Google Auth Platform branding, audience, and data access.
 4. Create a client under **Clients → Create client → Desktop app**.
-5. Download its JSON as `google_docs_mcp_server/oauth_client.json`.
+5. Download its JSON as `google_docs_mcp_server/oauth_client.json` for local
+   testing and release builds. This exact path is ignored by Git.
 6. Never package or commit a user `token.json`.
 
 Configure the public/default scopes:

@@ -55,6 +55,32 @@ def format_underline(doc_id: str, start_idx: int, end_idx: int, enabled: bool = 
     return apply_text_style(doc_id, {"underline": enabled}, "underline", start_idx, end_idx)
 
 
+def format_strikethrough(
+    doc_id: str, start_idx: int, end_idx: int, enabled: bool = True
+):
+    return apply_text_style(
+        doc_id, {"strikethrough": enabled}, "strikethrough", start_idx, end_idx
+    )
+
+
+def format_subscript(
+    doc_id: str, start_idx: int, end_idx: int, enabled: bool = True
+):
+    offset = "SUBSCRIPT" if enabled else "NONE"
+    return apply_text_style(
+        doc_id, {"baselineOffset": offset}, "baselineOffset", start_idx, end_idx
+    )
+
+
+def format_superscript(
+    doc_id: str, start_idx: int, end_idx: int, enabled: bool = True
+):
+    offset = "SUPERSCRIPT" if enabled else "NONE"
+    return apply_text_style(
+        doc_id, {"baselineOffset": offset}, "baselineOffset", start_idx, end_idx
+    )
+
+
 def change_font_family(doc_id: str, font_name: str, start_idx: int, end_idx: int):
     return apply_text_style(
         doc_id,
@@ -184,6 +210,81 @@ def set_line_spacing(
                     "range": {"startIndex": start_idx, "endIndex": end_idx},
                     "paragraphStyle": {"lineSpacing": spacing_multiplier * 100},
                     "fields": "lineSpacing",
+                }
+            }
+        ],
+    )
+
+
+def set_paragraph_spacing(
+    doc_id: str,
+    start_idx: int,
+    end_idx: int,
+    space_above_points: float = 0,
+    space_below_points: float = 0,
+):
+    """Set paragraph spacing above and below in points."""
+    validate_range(start_idx, end_idx)
+    if space_above_points < 0 or space_below_points < 0:
+        raise ValueError("Paragraph spacing cannot be negative.")
+    return _batch_update(
+        doc_id,
+        [
+            {
+                "updateParagraphStyle": {
+                    "range": {"startIndex": start_idx, "endIndex": end_idx},
+                    "paragraphStyle": {
+                        "spaceAbove": {
+                            "magnitude": space_above_points,
+                            "unit": "PT",
+                        },
+                        "spaceBelow": {
+                            "magnitude": space_below_points,
+                            "unit": "PT",
+                        },
+                    },
+                    "fields": "spaceAbove,spaceBelow",
+                }
+            }
+        ],
+    )
+
+
+def set_keep_with_next(
+    doc_id: str, start_idx: int, end_idx: int, enabled: bool = True
+):
+    """Keep selected paragraphs on the same page as the following paragraph."""
+    validate_range(start_idx, end_idx)
+    return _batch_update(
+        doc_id,
+        [
+            {
+                "updateParagraphStyle": {
+                    "range": {"startIndex": start_idx, "endIndex": end_idx},
+                    "paragraphStyle": {"keepWithNext": enabled},
+                    "fields": "keepWithNext",
+                }
+            }
+        ],
+    )
+
+
+def set_paragraph_direction(
+    doc_id: str, start_idx: int, end_idx: int, direction: str = "LEFT_TO_RIGHT"
+):
+    """Set paragraph text direction."""
+    validate_range(start_idx, end_idx)
+    allowed = {"LEFT_TO_RIGHT", "RIGHT_TO_LEFT"}
+    if direction not in allowed:
+        raise ValueError(f"direction must be one of {sorted(allowed)}.")
+    return _batch_update(
+        doc_id,
+        [
+            {
+                "updateParagraphStyle": {
+                    "range": {"startIndex": start_idx, "endIndex": end_idx},
+                    "paragraphStyle": {"direction": direction},
+                    "fields": "direction",
                 }
             }
         ],

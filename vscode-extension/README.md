@@ -2,15 +2,21 @@
 
 This VS Code extension auto-registers the Google Docs MCP Server with GitHub Copilot Agent.
 
-It exposes 50 tools for creating, reading, searching, formatting, sharing, exporting, and collaborating on Google Docs.
+It exposes 100 tools for creating, reading, searching, formatting, sharing,
+exporting, organizing, and collaborating on Google Docs.
 
 ## Requirements
 
 - VS Code 1.99+
 - [`uv`](https://docs.astral.sh/uv/) installed
-- A Google Cloud OAuth web client with the Docs and Drive APIs enabled
+- A Google account
 
-The extension launches `google-docs-mcp-server` through `uvx`.
+Normal users do not need their own Google Cloud project. The published Python
+package supplies the public Desktop OAuth client identity, while every user
+authorizes their own account and stores their token locally.
+
+The extension launches the `google-docs-mcp-server` command from the
+`google-docs-mcp-server-ahmedlaminou` PyPI distribution through `uvx`.
 
 ## First-time OAuth
 

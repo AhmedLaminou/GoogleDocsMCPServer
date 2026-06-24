@@ -200,6 +200,92 @@ def list_active_comments(doc_id: str) -> list[dict[str, Any]]:
     ]
 
 
+def list_all_comments(
+    doc_id: str, include_resolved: bool = True
+) -> list[dict[str, Any]]:
+    """List Drive comments and replies, optionally excluding resolved threads."""
+    result = execute(
+        get_service("v3")
+        .comments()
+        .list(
+            fileId=doc_id,
+            includeDeleted=False,
+            fields=(
+                "comments(id,author(displayName,emailAddress),content,createdTime,"
+                "modifiedTime,resolved,quotedFileContent,"
+                "replies(id,author(displayName,emailAddress),content,action,"
+                "createdTime,modifiedTime,deleted))"
+            ),
+        )
+    )
+    comments = result.get("comments", [])
+    if include_resolved:
+        return comments
+    return [comment for comment in comments if not comment.get("resolved", False)]
+
+
+def update_comment(doc_id: str, comment_id: str, text: str) -> dict[str, Any]:
+    """Replace the content of a Drive comment."""
+    if not text.strip():
+        raise ValueError("text must not be empty.")
+    return execute(
+        get_service("v3")
+        .comments()
+        .update(
+            fileId=doc_id,
+            commentId=comment_id,
+            body={"content": text},
+            fields="id,content,modifiedTime,resolved",
+        )
+    )
+
+
+def delete_comment(doc_id: str, comment_id: str) -> dict[str, Any]:
+    """Delete a Drive comment."""
+    execute(
+        get_service("v3")
+        .comments()
+        .delete(fileId=doc_id, commentId=comment_id)
+    )
+    return {"document_id": doc_id, "comment_id": comment_id, "deleted": True}
+
+
+def update_reply(
+    doc_id: str, comment_id: str, reply_id: str, text: str
+) -> dict[str, Any]:
+    """Replace the content of a Drive comment reply."""
+    if not text.strip():
+        raise ValueError("text must not be empty.")
+    return execute(
+        get_service("v3")
+        .replies()
+        .update(
+            fileId=doc_id,
+            commentId=comment_id,
+            replyId=reply_id,
+            body={"content": text},
+            fields="id,content,modifiedTime,action",
+        )
+    )
+
+
+def delete_reply(
+    doc_id: str, comment_id: str, reply_id: str
+) -> dict[str, Any]:
+    """Delete a Drive comment reply."""
+    execute(
+        get_service("v3")
+        .replies()
+        .delete(fileId=doc_id, commentId=comment_id, replyId=reply_id)
+    )
+    return {
+        "document_id": doc_id,
+        "comment_id": comment_id,
+        "reply_id": reply_id,
+        "deleted": True,
+    }
+
+
 def resolve_comment(doc_id: str, comment_id: str) -> dict[str, Any]:
     """Resolve a Drive comment by creating a resolve-action reply."""
     return execute(

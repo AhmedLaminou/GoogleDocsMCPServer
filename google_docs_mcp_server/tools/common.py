@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import re
+import os
+import socket
 from typing import Any, Iterable
+
+import httplib2
+from googleapiclient.errors import HttpError
 
 
 def get_service(api_type: str):
@@ -12,9 +17,46 @@ def get_service(api_type: str):
     return get_google_service(api_type)
 
 
+def api_retries() -> int:
+    """Return the googleapiclient execute retry count."""
+    raw_value = os.getenv("GOOGLE_DOCS_MCP_API_RETRIES", "2")
+    try:
+        retries = int(raw_value)
+    except ValueError as exc:
+        raise ValueError("GOOGLE_DOCS_MCP_API_RETRIES must be an integer.") from exc
+    if retries < 0:
+        raise ValueError("GOOGLE_DOCS_MCP_API_RETRIES cannot be negative.")
+    return retries
+
+
+def _decode_http_error(exc: HttpError) -> str:
+    content = exc.content
+    if isinstance(content, bytes):
+        content = content.decode("utf-8", errors="replace")
+    content = str(content or "").strip()
+    if len(content) > 500:
+        content = content[:500] + "..."
+    status = getattr(exc.resp, "status", "unknown")
+    reason = getattr(exc.resp, "reason", "unknown")
+    if content:
+        return f"Google API request failed ({status} {reason}): {content}"
+    return f"Google API request failed ({status} {reason})."
+
+
 def execute(request):
     """Execute a Google API request (kept separate for easy mocking)."""
-    return request.execute()
+    try:
+        return request.execute(num_retries=api_retries())
+    except HttpError as exc:
+        raise RuntimeError(_decode_http_error(exc)) from exc
+    except (TimeoutError, socket.timeout) as exc:
+        raise TimeoutError(
+            "Google API request timed out. Set GOOGLE_DOCS_MCP_HTTP_TIMEOUT "
+            "to a larger value if you are exporting a large document or using "
+            "a slow connection."
+        ) from exc
+    except httplib2.HttpLib2Error as exc:
+        raise RuntimeError(f"Google API transport error: {exc}") from exc
 
 
 def escape_drive_query(value: str) -> str:
@@ -55,6 +97,24 @@ def extract_text(elements: Iterable[dict[str, Any]]) -> str:
 
 def document_body(document: dict[str, Any]) -> list[dict[str, Any]]:
     return document.get("body", {}).get("content", [])
+
+
+def iter_tabs(tabs: Iterable[dict[str, Any]]):
+    """Yield document tabs recursively, including nested child tabs."""
+    for tab in tabs or []:
+        yield tab
+        yield from iter_tabs(tab.get("childTabs", []))
+
+
+def tab_body(tab: dict[str, Any]) -> list[dict[str, Any]]:
+    return tab.get("documentTab", {}).get("body", {}).get("content", [])
+
+
+def find_tab(document: dict[str, Any], tab_id: str) -> dict[str, Any]:
+    for tab in iter_tabs(document.get("tabs", [])):
+        if tab.get("tabProperties", {}).get("tabId") == tab_id:
+            return tab
+    raise KeyError(f"tab_id {tab_id!r} was not found.")
 
 
 def document_end_index(document: dict[str, Any]) -> int:
@@ -115,11 +175,7 @@ def find_text_ranges(
 
 
 def find_table(document: dict[str, Any], table_index: int) -> dict[str, Any]:
-    tables = [
-        element["table"]
-        for element in document_body(document)
-        if "table" in element
-    ]
+    tables = [element for element in document_body(document) if "table" in element]
     if table_index < 0 or table_index >= len(tables):
         raise IndexError(
             f"table_index {table_index} is out of range; document contains {len(tables)} tables."
@@ -133,7 +189,7 @@ def table_cell_insert_index(
     row_index: int,
     column_index: int,
 ) -> int:
-    table = find_table(document, table_index)
+    table = find_table(document, table_index)["table"]
     rows = table.get("tableRows", [])
     if row_index < 0 or row_index >= len(rows):
         raise IndexError(f"row_index {row_index} is out of range.")
@@ -145,3 +201,7 @@ def table_cell_insert_index(
     if not content:
         raise ValueError("The selected table cell has no writable paragraph.")
     return content[0].get("startIndex", 0) + 1
+
+
+def table_start_index(document: dict[str, Any], table_index: int) -> int:
+    return find_table(document, table_index).get("startIndex", 0)

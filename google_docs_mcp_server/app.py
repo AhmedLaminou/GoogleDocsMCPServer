@@ -19,13 +19,15 @@ from google_docs_mcp_server.auth import (
     load_oauth_client_config,
     save_credentials,
 )
+from google_docs_mcp_server import __version__
 from google_docs_mcp_server.registry import register_all_tools
+from google_docs_mcp_server.registry import TOOL_FUNCTIONS
 
 # ==============================================================
 # FAST-MCP & FASTAPI SERVER SETUP
 # ==============================================================
 # We must use FastAPI directly to handle SSE routes manually and OAuth routes.
-app = FastAPI(title="Google Docs MCP Server", version="1.0.0")
+app = FastAPI(title="Google Docs MCP Server", version=__version__)
 mcp = FastMCP("GoogleDocsMCP")
 
 class OptionalApiKeyMiddleware(BaseHTTPMiddleware):
@@ -155,7 +157,7 @@ async def health() -> dict[str, Any]:
     return {
         "status": "ok",
         "authenticated": TOKEN_FILE.exists() or LEGACY_TOKEN_FILE.exists(),
-        "tool_count": 50,
+        "tool_count": len(TOOL_FUNCTIONS),
     }
 
 
