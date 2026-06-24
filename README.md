@@ -119,6 +119,11 @@ google-docs-mcp-web
 
 It is not the default public architecture because true multi-user hosting requires per-user sessions and secure server-side token storage.
 
+## Privacy and terms
+
+- [Privacy Policy](docs/PRIVACY_POLICY.md)
+- [Terms of Service](docs/TERMS_OF_SERVICE.md)
+
 ## Capabilities
 
 - Document creation, rename, copy, trash/restore, metadata, folders, permissions,
