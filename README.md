@@ -4,6 +4,12 @@
 
 An open-source, stdio-first MCP server exposing **100 Google Docs and Drive tools**.
 
+## Demo
+
+[![Google Docs MCP Server demo](https://img.youtube.com/vi/f6VcLls1dUk/hqdefault.jpg)](https://youtu.be/f6VcLls1dUk)
+
+Watch the demo: <https://youtu.be/f6VcLls1dUk>
+
 ## User experience
 
 End users do not need their own Google Cloud project. The published package uses this project's public Desktop OAuth client identity. Each user signs into their own Google account and stores a separate token only on their own machine.

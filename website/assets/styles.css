@@ -239,10 +239,37 @@ pre {
   margin-bottom: 28px;
 }
 
+.section-heading p {
+  color: var(--muted);
+}
+
 .section h2,
 .legal h1 {
   font-size: 3.6rem;
   line-height: 1;
+}
+
+.demo-section {
+  padding-top: 36px;
+}
+
+.video-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f1e19;
+  box-shadow: var(--shadow);
+  aspect-ratio: 16 / 9;
+}
+
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .grid {
